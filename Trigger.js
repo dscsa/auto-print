@@ -42,8 +42,8 @@ function isTriggered(frequency){
   if(frequency.length == 0) return false //they need to specify something
 
   var today    = new Date()
-  var fullHour = today.getMinutes() == 0 || today.getMinutes() == 5 //used to be 0 or 1 BUT that would cause duplicate prints.  Maybe print job wasn't finished yet
-  var halfHour = fullHour || today.getMinutes() == 30 || today.getMinutes() == 35 //used to be 30 or 31 BUT that would cause duplicate prints.  Maybe print job wasn't finished yet
+  var fullHour = today.getMinutes() == 0
+  var halfHour = fullHour || today.getMinutes() == 30
 
   Logger.log('isTriggered: '+today.getDay()+' '+today.getHours()+' '+today.getMinutes())
 
