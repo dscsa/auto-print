@@ -2,26 +2,26 @@ function autoPrint() {
   //Boiler plate setup
   var jobs = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Jobs").getDataRange().getValues()
   var errors = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Errors")
-  
+
   //Try to process each job
   for(var j = 1; j < jobs.length; j++){
-    
+
     var jobName   = jobs[j][0].toString().trim()
     var folderId  = jobs[j][1].toString().trim()
     var printerId = jobs[j][5].toString().trim()
     var frequency = jobs[j][4].toString().trim()
     var isDuplex  = jobs[j][3].toString().trim() == "Yes" ? "LONG_EDGE" : "NO_DUPLEX"
-    
+
     if ( ! printerId.length || ! folderId.length || ! isTriggered(frequency))
       continue
-    
+
     try{ //to handle each job
-        
+
       var folder  = DriveApp.getFolderById(folderId)
       var printed = folder.getFoldersByName("Printed").next()
-      
+
       var files = folder.getFiles()
-      
+
       //then actually process the files
       while(files.hasNext()){
         var file = files.next()
@@ -29,7 +29,7 @@ function autoPrint() {
         printed.addFile(file);//move to the completed folder
         folder.removeFile(file);
       }
-        
+
     } catch(e){
       logError(jobName, e, errors)
     }
@@ -40,26 +40,26 @@ function autoPrint() {
 function isTriggered(frequency){
 
   if(frequency.length == 0) return false //they need to specify something
-    
+
   var today    = new Date()
-  var fullHour = today.getMinutes() == 0 || today.getMinutes() == 1
-  var halfHour = fullHour || today.getMinutes() == 30 || today.getMinutes() == 31
-  
+  var fullHour = today.getMinutes() == 0 || today.getMinutes() == 5 //used to be 0 or 1 BUT that would cause duplicate prints.  Maybe print job wasn't finished yet
+  var halfHour = fullHour || today.getMinutes() == 30 || today.getMinutes() == 35 //used to be 30 or 31 BUT that would cause duplicate prints.  Maybe print job wasn't finished yet
+
   Logger.log('isTriggered: '+today.getDay()+' '+today.getHours()+' '+today.getMinutes())
 
   if(frequency == "1 min") //were running a trigger like that anyway, so just use it
     return true
-    
+
   if (frequency == "30 min")
     return halfHour
-  
+
   if (frequency == "1 hr")
     return fullHour
-    
-  if(frequency.indexOf("am") > -1 || frequency.indexOf("pm") > -1) //if it's a daily trigger, check if it's that time 
+
+  if(frequency.indexOf("am") > -1 || frequency.indexOf("pm") > -1) //if it's a daily trigger, check if it's that time
     return fullHour && today.getHours() == getTwentyFourFormat(frequency)
-  
-  //then it's a weekly schedule, need to check if it's today & confirm it's runtime 
+
+  //then it's a weekly schedule, need to check if it's today & confirm it's runtime
   var numbered_day = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(frequency) //this'll match the javascript way of labelling time
   return fullHour && today.getHours() == 9 && today.getDay() == numbered_day    //its the right day, hour, and either 0/1 minutes i, //arbitrarily determined, but just run all the weekly triggers at 9AM on the day in question
 }
