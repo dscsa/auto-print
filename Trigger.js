@@ -4,8 +4,7 @@ function autoPrint() {
 
   if ( ! lock.tryLock(1000)) {
     var err = 'Refresh Shopping Sheet is already running!'
-    console.log(err)
-    Logger.log(err)
+    logError('autoPrint Error', err)
     return
   }
 
