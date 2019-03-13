@@ -1,4 +1,14 @@
 function autoPrint() {
+
+  var lock = LockService.getScriptLock();
+
+  if ( ! lock.tryLock(1000)) {
+    var err = 'Refresh Shopping Sheet is already running!'
+    console.log(err)
+    Logger.log(err)
+    return
+  }
+
   //Boiler plate setup
   var jobs = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Jobs").getDataRange().getValues()
   var errors = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Errors")
@@ -25,16 +35,20 @@ function autoPrint() {
       //then actually process the files
       while(files.hasNext()){
         file = files.next()
-        folder.removeFile(file); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
-        printed.addFile(file);//move to the completed folder
         printDoc(file.getId(), printerId, file.getName(), isDuplex)
+        printed.addFile(file);//move to the completed folder
+        folder.removeFile(file); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
       }
 
     } catch(e){
-      folder.addFile(file)
       logError(jobName, e, errors)
     }
   }
+
+  try { //Error: "There are too many LockService operations against the same script." at #Main:79 (updateShopping),	at #Main:17 (triggerShopping)
+    lock.releaseLock()
+    Logger.log('Autoprint Completed')
+  } catch (e) {}
 }
 
 //Frquency is from dropdown of [1 min,30 min,1 hr,12am,1am,2am,3am,4am,5am,6am,7am,8am,9am,10am,11am,12pm,1pm,2pm,3pm,4pm,5pm,6pm,7pm,8pm,10pm,11pm,Monday,Tuesday,Wednesday,Thursday,Friday]
@@ -43,8 +57,8 @@ function isTriggered(frequency){
   if(frequency.length == 0) return false //they need to specify something
 
   var today    = new Date()
-  var fullHour = today.getMinutes() == 0
-  var halfHour = today.getMinutes() == 30
+  var fullHour = today.getMinutes() == 0  || today.getMinutes() == 1
+  var halfHour = today.getMinutes() == 30 || today.getMinutes() == 31
 
   Logger.log('isTriggered: '+today.getDay()+' '+today.getHours()+' '+today.getMinutes())
 
@@ -58,7 +72,7 @@ function isTriggered(frequency){
     return fullHour
 
   if(frequency.indexOf("am") > -1 || frequency.indexOf("pm") > -1) //if it's a daily trigger, check if it's that time
-    return (frequency.indexOf(":30") ? halfHour : fullHour) && today.getHours() == getTwentyFourFormat(frequency)
+    return ( ~ frequency.indexOf(":30") ? halfHour : fullHour) && today.getHours() == getTwentyFourFormat(frequency)
 
   //then it's a weekly schedule, need to check if it's today & confirm it's runtime
   var numbered_day = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(frequency) //this'll match the javascript way of labelling time
