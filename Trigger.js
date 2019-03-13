@@ -58,7 +58,7 @@ function isTriggered(frequency){
     return fullHour
 
   if(frequency.indexOf("am") > -1 || frequency.indexOf("pm") > -1) //if it's a daily trigger, check if it's that time
-    return (frequency.indexOf(":") ? halfHour : fullHour) && today.getHours() == getTwentyFourFormat(frequency)
+    return (frequency.indexOf(":30") ? halfHour : fullHour) && today.getHours() == getTwentyFourFormat(frequency)
 
   //then it's a weekly schedule, need to check if it's today & confirm it's runtime
   var numbered_day = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(frequency) //this'll match the javascript way of labelling time
