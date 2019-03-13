@@ -21,16 +21,17 @@ function autoPrint() {
       var printed = folder.getFoldersByName("Printed").next()
 
       var files = folder.getFiles()
-
+      var file
       //then actually process the files
       while(files.hasNext()){
-        var file = files.next()
-        printDoc(file.getId(), printerId, file.getName(), isDuplex)
+        file = files.next()
+        folder.removeFile(file); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
         printed.addFile(file);//move to the completed folder
-        folder.removeFile(file);
+        printDoc(file.getId(), printerId, file.getName(), isDuplex)
       }
 
     } catch(e){
+      folder.addFile(file)
       logError(jobName, e, errors)
     }
   }
@@ -43,7 +44,7 @@ function isTriggered(frequency){
 
   var today    = new Date()
   var fullHour = today.getMinutes() == 0
-  var halfHour = fullHour || today.getMinutes() == 30
+  var halfHour = today.getMinutes() == 30
 
   Logger.log('isTriggered: '+today.getDay()+' '+today.getHours()+' '+today.getMinutes())
 
@@ -51,13 +52,13 @@ function isTriggered(frequency){
     return true
 
   if (frequency == "30 min")
-    return halfHour
+    return halfHour || fullHour
 
   if (frequency == "1 hr")
     return fullHour
 
   if(frequency.indexOf("am") > -1 || frequency.indexOf("pm") > -1) //if it's a daily trigger, check if it's that time
-    return fullHour && today.getHours() == getTwentyFourFormat(frequency)
+    return (frequency.indexOf(":") ? halfHour : fullHour) && today.getHours() == getTwentyFourFormat(frequency)
 
   //then it's a weekly schedule, need to check if it's today & confirm it's runtime
   var numbered_day = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(frequency) //this'll match the javascript way of labelling time
