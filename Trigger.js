@@ -29,14 +29,27 @@ function autoPrint() {
       var folder  = DriveApp.getFolderById(folderId)
       var printed = folder.getFoldersByName("Printed").next()
 
-      var files = folder.getFiles()
-      var file
+      var iterator = folder.getFiles()
+      var files    = []
+
       //then actually process the files
-      while(files.hasNext()){
-        file = files.next()
-        printDoc(file.getId(), printerId, file.getName(), isDuplex)
-        printed.addFile(file);//move to the completed folder
-        folder.removeFile(file); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
+      while(iterator.hasNext())
+        files.push(iterator.next())
+
+      //For now default files to be sorted by name
+      files.sort(function(a, b) {
+        var aName = a.getName()
+        var bName = b.getName()
+
+        if (aName < bName) return -1
+        if (aName > bName) return 1
+      })
+
+      //then actually process the files
+      for(i in files){
+        printDoc(files[i].getId(), printerId, files[i].getName(), isDuplex)
+        printed.addFile(files[i]);//move to the completed folder
+        folder.removeFile(files[i]); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
       }
 
     } catch(e){
