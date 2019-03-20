@@ -16,7 +16,7 @@ function reauthorize() {
 function refreshPrinters() {
 
   try{
-    printers = getPrinterList()
+    printers = getPrinterList().printers
   } catch(e){
     throw new Error("You must reauthorize print@sirum.org in the Printing Menu")
   }
