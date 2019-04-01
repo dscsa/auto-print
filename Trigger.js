@@ -1,3 +1,5 @@
+var columnOrder = {jobName:0, folderId:1, printerName:2, tray:3, isDuplex:4, frequency:5, printerId:6}
+
 function autoPrint() {
 
   var lock = LockService.getScriptLock();
@@ -15,11 +17,12 @@ function autoPrint() {
   //Try to process each job
   for(var j = 1; j < jobs.length; j++){
 
-    var jobName   = jobs[j][0].toString().trim()
-    var folderId  = jobs[j][1].toString().trim()
-    var printerId = jobs[j][5].toString().trim()
-    var frequency = jobs[j][4].toString().trim()
-    var isDuplex  = jobs[j][3].toString().trim() == "Yes" ? "LONG_EDGE" : "NO_DUPLEX"
+    var jobName   = jobs[j][columnOrder.jobName].toString().trim()
+    var folderId  = jobs[j][columnOrder.folderId].toString().trim()
+    var tray      = jobs[j][columnOrder.tray].toString().trim()
+    var isDuplex  = jobs[j][columnOrder.isDuplex].toString().trim() == "Yes" ? "LONG_EDGE" : "NO_DUPLEX"
+    var frequency = jobs[j][columnOrder.frequency].toString().trim()
+    var printerId = jobs[j][columnOrder.printerId].toString().trim()
 
     if ( ! printerId.length || ! folderId.length || ! isTriggered(frequency))
       continue
@@ -47,7 +50,7 @@ function autoPrint() {
 
       //then actually process the files
       for(i in files){
-        printDoc(files[i].getId(), printerId, files[i].getName(), isDuplex)
+        printDoc(files[i].getId(), printerId, files[i].getName(), tray, isDuplex)
         printed.addFile(files[i]);//move to the completed folder
         folder.removeFile(files[i]); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
       }
