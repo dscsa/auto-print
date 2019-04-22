@@ -443,6 +443,7 @@ function printDoc(docID, printerID, docName, tray, isDuplex) {
       vendor_ticket_item:[
         //Printer specific settings here, from the capabilities:
         {"id":"JobInputBin","value":tray || "Auto"},
+        {"id":"PageMediaType","value":tray ? "Thicker" : "Auto" }
       ]
     }
   };
