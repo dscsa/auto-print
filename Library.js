@@ -430,6 +430,9 @@ function printDoc(docID, printerID, docName, tray, isDuplex) {
 
   Logger.log('printDoc '+docID+' '+printerID+' '+docName+' '+tray+' '+isDuplex)
 
+  //Hacck right now, eventually add column so user can specify
+  var useThickPaper = tray || printerID == '92371365-2874-0ba5-5d55-2a0c39ce6963'
+
   var ticket = {
     version: "1.0",
     print: {
@@ -443,7 +446,7 @@ function printDoc(docID, printerID, docName, tray, isDuplex) {
       vendor_ticket_item:[
         //Printer specific settings here, from the capabilities:
         {"id":"JobInputBin","value":tray || "Auto"},
-        {"id":"PageMediaType","value":tray ? "Thicker" : "Auto" }
+        {"id":"PageMediaType","value":useThickPaper ? "Thicker" : "Auto" }
       ]
     }
   };
