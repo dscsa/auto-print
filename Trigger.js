@@ -4,15 +4,16 @@ function autoPrint() {
 
   var lock = LockService.getScriptLock();
 
+  var errors = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Errors")
+
   if ( ! lock.tryLock(1000)) {
     var err = 'Refresh Shopping Sheet is already running!'
-    logError('autoPrint Error', err)
+    logError('autoPrint Error', err, errors)
     return
   }
 
   //Boiler plate setup
   var jobs = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Jobs").getDataRange().getValues()
-  var errors = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Errors")
 
   //Try to process each job
   for(var j = 1; j < jobs.length; j++){
