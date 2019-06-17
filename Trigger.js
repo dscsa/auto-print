@@ -7,7 +7,7 @@ function autoPrint() {
   var errors = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Errors")
 
   if ( ! lock.tryLock(1000)) {
-    var err = 'Refresh Shopping Sheet is already running!'
+    var err = 'Autoprint is already running!'
     logError('autoPrint Error', err, errors)
     return
   }
