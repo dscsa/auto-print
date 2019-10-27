@@ -8,7 +8,7 @@ function autoPrint() {
 
   if ( ! lock.tryLock(1000)) {
     var err = 'Autoprint is already running!'
-    logError('autoPrint Error', err, errors)
+    //logError('autoPrint Error', err, errors)
     return
   }
 
