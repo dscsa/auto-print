@@ -16,13 +16,16 @@ function reauthorize() {
 function refreshPrinters() {
 
   try{
-    printers = getPrinterList().printers
+    var printerList = getPrinterList()
+    var printers = printerList.printers
   } catch(e){
     throw new Error("You must reauthorize print@sirum.org in the Printing Menu")
   }
 
-  var values = printers.map(function(printer) { return [printer.name, printer.id, printer.connectionStatus] })
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Printers").getRange(2, 1, values.length, 3).setValues(values)
+  Logger.log(JSON.stringify(printerList, null, ' '))
+
+  var values = printers.map(function(printer) { return [printer.displayName || printer.name, printer.id, printer.connectionStatus] })
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Printers").getRange(4, 1, values.length, 3).setValues(values)
 }
 
 
@@ -67,13 +70,14 @@ function newJobTrigger(e) {
       try{
         var parent  = DriveApp.getFolderById(e.value) //make sure we can access the folder to print
         var printed = parent.getFoldersByName("Printed")
-        if( ! printed.hasNext()){
-          throw new Error("There is no 'Printed' folder in the job folder with name: " + parent.getName() + ". There needs to be a 'Printed' folder to move finished files")
+        var faxed   = parent.getFoldersByName("Faxed")
+        if( ! printed.hasNext() && ! faxed.hasNext()){
+          throw new Error("There is no 'Printed' or 'Faxed' folder in the job folder with name: " + parent.getName() + ". There needs to be a 'Printed' folder to move finished files")
         }
 
       } catch(e) { //will throw error if folder doesnt work or printer@ doesn't have access, so catch and highlight cell
         range.setBackground("pink")
-        range.getCell(1,1).setComment("Please check this folder exists and is shared with print@sirum.org "+JSON.stringify(e))
+        range.getCell(1,1).setComment("Please check this folder exists and is shared with print@sirum.org "+e.getMessage())
       }
 
     }

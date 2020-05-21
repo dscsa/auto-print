@@ -1,6 +1,28 @@
 var columnOrder = {jobName:0, folderId:1, printerName:2, tray:3, isDuplex:4, frequency:5, printerId:6}
+var scriptId  = new Date() //A unique id per script run
+var mainCache = CacheService.getScriptCache();
+var cacheMins = 30
 
-function autoPrint() {
+function testJob1() {
+  autoPrint(1)
+}
+function testJob2() {
+  autoPrint(2)
+}
+function testJob3() {
+  autoPrint(3)
+}
+function testJob4() {
+  autoPrint(4)
+}
+function testJob5() {
+  autoPrint(5)
+}
+function testJob6() {
+  autoPrint(6)
+}
+
+function autoPrint(trigger_override) {
 
   var lock = LockService.getScriptLock();
 
@@ -25,13 +47,30 @@ function autoPrint() {
     var frequency = jobs[j][columnOrder.frequency].toString().trim()
     var printerId = jobs[j][columnOrder.printerId].toString().trim()
 
-    if ( ! printerId.length || ! folderId.length || ! isTriggered(frequency))
+    if ( ! printerId.length || ! folderId.length)
+      continue
+
+    var today     = new Date()
+    var override  = trigger_override === j
+    var triggered =  typeof trigger_override == 'object' ? isTriggered(frequency) : override
+
+    Logger.log('isTriggered: '+jobName+' frequency:'+frequency+' day:'+today.getDay()+' hours:'+today.getHours()+' mins:'+today.getMinutes()+' j:'+j+' triggered:'+triggered+' trigger_override:'+JSON.stringify(trigger_override)+' job:'+JSON.stringify(jobs[j]))
+
+    if ( ! triggered)
       continue
 
     try{ //to handle each job
 
       var folder  = DriveApp.getFolderById(folderId)
-      var printed = folder.getFoldersByName("Printed").next()
+      var printed = folder.getFoldersByName("Printed")
+      var faxed   = folder.getFoldersByName("Faxed")
+
+      if (printed.hasNext())
+        var completed = printed.next()
+      else if (faxed.hasNext())
+        var completed = faxed.next()
+      else
+        return logError('Does not have a printed or faxed folder', jobName, e, errors)
 
       var iterator = folder.getFiles()
       var files    = []
@@ -51,12 +90,27 @@ function autoPrint() {
 
       //then actually process the files
       for(i in files){
-        printDoc(files[i].getId(), printerId, files[i].getName(), tray, isDuplex)
-        printed.addFile(files[i]);//move to the completed folder
+
+        var fileId = files[i].getId()
+
+        if ( ! override && mainCache.get(fileId)) {
+          Logger.log(['Duplicate File Printing with '+cacheMins+' mins', [files[i].getName(), fileId, 'Original Script', mainCache.get(fileId), 'This Script', scriptId.toJSON()], errors])
+          continue
+        }
+
+        if ( ! override) mainCache.put(fileId, scriptId.toJSON(), cacheMins*60)
+
+        if (printerId.slice(0,4) == 'sfax')
+          faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
+        else
+          printDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
+
+        completed.addFile(files[i]);//move to the completed folder
         folder.removeFile(files[i]); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
       }
 
     } catch(e){
+      if (fileId) mainCache.remove(fileId)
       logError(jobName, e, errors)
     }
   }
@@ -75,8 +129,6 @@ function isTriggered(frequency){
   var today    = new Date()
   var fullHour = today.getMinutes() == 0  || today.getMinutes() == 1
   var halfHour = today.getMinutes() == 30 || today.getMinutes() == 31
-
-  Logger.log('isTriggered: '+today.getDay()+' '+today.getHours()+' '+today.getMinutes())
 
   if(frequency == "1 min") //were running a trigger like that anyway, so just use it
     return true
@@ -102,6 +154,6 @@ function getTwentyFourFormat(twelveHourFormat){
 
 function logError(job,msg, error_sheet){
   var time_stamp = Utilities.formatDate(new Date(), "GMT-05:00", "MM/dd/yyyy HH:mm:ss")
-  error_sheet.appendRow([job,msg, time_stamp])
-  MailApp.sendEmail("adam@sirum.org", "Printing Error", "There was an error on printing job: " + job + "\n\nError Message: " + msg) //TODO: change this to info@sirum.org
+  if (error_sheet && error_sheet.appendRow) error_sheet.appendRow([job,msg, time_stamp])
+  MailApp.sendEmail("adam@sirum.org", "Printing Error", "There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg)) //TODO: change this to info@sirum.org
 }

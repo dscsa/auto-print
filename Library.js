@@ -380,23 +380,19 @@ function testPrinter(printerID) {
        "width_microns": 210000,
       },
       page_orientation:{type:1},
-      */
-
-      margins: { //Some invoices had footer appear on top of page (17680) if margins were set to default rather than minimum
-        top_microns:12700, //.5 inches
-        bottom_microns:12700,
-        left_microns:12700,
-        right_microns:12700
+      margins: {
+        top_microns:0,
+        bottom_microns:0,
+        left_microns:0,
+        right_microns:0
       },
-
+      */
       fit_to_page: {
         type:"NO_FITTING"
       },
-
       duplex: {
         type: "NO_DUPLEX"
       },
-
       vendor_ticket_item:[
         //Printer specific settings here, from the capabilities:
         {"id":"JobInputBin","value":"Tray2"},
