@@ -80,7 +80,7 @@ function sendSFax(fromFax, toFax, blob){
     return JSON.parse(res.getContentText()) //{"SendFaxQueueId":"539658135EB742968663C6820BE33DB0","isSuccess":true,"message":"Fax is received and being processed"}
 
   } catch(err){
-    logError('sendSFax err' + err)
+    logError('sendSFax err', err)
     return err
   }
 }

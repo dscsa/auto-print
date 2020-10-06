@@ -70,7 +70,7 @@ function autoPrint(trigger_override) {
       else if (faxed.hasNext())
         var completed = faxed.next()
       else
-        return logError('Does not have a printed or faxed folder', jobName, e, errors)
+        return logError(jobName, 'Does not have a printed or faxed folder', errors)
 
       var iterator = folder.getFiles()
       var files    = []
@@ -152,8 +152,9 @@ function getTwentyFourFormat(twelveHourFormat){
   return parseInt(twelveHourFormat.replace("12","0").replace(/(a|p)m/g,"")) + add //if its midnight of noon, set it to zero, and remove the pm/am. We'll add 12 if it's pm
 }
 
-function logError(job,msg, error_sheet){
+function logError(job, msg, error_sheet){
   var time_stamp = Utilities.formatDate(new Date(), "GMT-05:00", "MM/dd/yyyy HH:mm:ss")
   if (error_sheet && error_sheet.appendRow) error_sheet.appendRow([job,msg, time_stamp])
+  if (msg.stack) msg = msg.name+' '+msg.message+' '+msg.stack //this is an error and JSON.stringify won't work well
   MailApp.sendEmail("adam@sirum.org", "Printing Error", "There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg)) //TODO: change this to info@sirum.org
 }
