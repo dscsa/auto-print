@@ -92,6 +92,8 @@ function autoPrint(trigger_override) {
       for(i in files){
 
         var fileId = files[i].getId()
+        
+        Logger.log(['DEBUG autoPrint', files[i].getName(), 'Original Script', mainCache.get(fileId), 'This Script', scriptId.toJSON()])
 
         if ( ! override && mainCache.get(fileId)) {
           Logger.log(['Duplicate File Printing with '+cacheMins+' mins', [files[i].getName(), fileId, 'Original Script', mainCache.get(fileId), 'This Script', scriptId.toJSON()], errors])
@@ -104,12 +106,17 @@ function autoPrint(trigger_override) {
           faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
         else
           printDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
+          
+        
+        Logger.log(['DEBUG Folder Move', folder.getName()+' -> '+completed.getName()])
 
-        completed.addFile(files[i]);//move to the completed folder
-        folder.removeFile(files[i]); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
+        files[i].moveTo(completed)
+        //completed.addFile(files[i]);//move to the completed folder
+        //folder.removeFile(files[i]); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
       }
 
     } catch(e){
+      Logger.log(['DEBUG AutoPrint Error', e, e.stack])
       if (fileId) mainCache.remove(fileId)
       logError(jobName, e, errors)
     }
