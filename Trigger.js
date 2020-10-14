@@ -106,11 +106,18 @@ function autoPrint(trigger_override) {
           faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
         else
           printDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
-          
         
-        Logger.log(['DEBUG Folder Move', folder.getName()+' -> '+completed.getName()])
-
-        files[i].moveTo(completed)
+        //Logger.log('DEBUG Folder Move'+files[i].getName()+': '+folder.getName()+' -> '+completed.getName())
+        
+        try { 
+          files[i].moveTo(completed)
+        } catch (e) {
+          var message = 'Printing Error ERROR Folder Move '+files[i].getName()+': '+folder.getName()+' -> '+completed.getName()+' '+e.message+' '+e.stack
+          var permissions = ' Active User '+Session.getActiveUser().getEmail()+' Effective User '+Session.getEffectiveUser().getEmail()+' File Owner '+files[i].getOwner().getEmail()
+          Logger.log(message+permissions)
+          MailApp.sendEmail("adam@sirum.org", "Printing Error", message+permissions) //TODO: change this to info@sirum.org
+        }
+       
         //completed.addFile(files[i]);//move to the completed folder
         //folder.removeFile(files[i]); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
       }

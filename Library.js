@@ -11,6 +11,11 @@ function logPrinterList(){
   Logger.log(JSON.stringify(logger, null, " "))
 }
 
+function testSession() {
+    var permissions = ' Active User '+Session.getActiveUser().getEmail()+' Effective User '+Session.getEffectiveUser().getEmail()
+    Logger.log(permissions)
+}
+
 function log6200() {
   var details = printerDetails('c9c837ab-01fd-fff7-5e26-4d21d75dd21e')
   Logger.log(JSON.stringify(details, null, " "))
@@ -478,6 +483,8 @@ function printDoc(docID, printerID, docName, tray, isDuplex) {
 
   response = JSON.parse(response);
 
-  if ( ! response.success)
+  if ( ! response.success) {
+    Logger.log(['printDoc ERROR', 'response', response, 'payload', payload])
     throw new Error(JSON.stringify(response))
+  }
 }
