@@ -1,4 +1,4 @@
-var columnOrder = {jobName:0, folderId:1, printerName:2, tray:3, isDuplex:4, frequency:5, printerId:6}
+var columnOrder = {jobName:0, folderId:1, printerName:2, tray:3, isDuplex:4, frequency:5, printerId:6, destination:7}
 var scriptId  = new Date() //A unique id per script run
 var mainCache = CacheService.getScriptCache();
 var cacheMins = 30
@@ -40,12 +40,13 @@ function autoPrint(trigger_override) {
   //Try to process each job
   for(var j = 1; j < jobs.length; j++){
 
-    var jobName   = jobs[j][columnOrder.jobName].toString().trim()
-    var folderId  = jobs[j][columnOrder.folderId].toString().trim()
-    var tray      = jobs[j][columnOrder.tray].toString().trim()
-    var isDuplex  = jobs[j][columnOrder.isDuplex].toString().trim() == "Yes" ? "LONG_EDGE" : "NO_DUPLEX"
-    var frequency = jobs[j][columnOrder.frequency].toString().trim()
-    var printerId = jobs[j][columnOrder.printerId].toString().trim()
+    var jobName     = jobs[j][columnOrder.jobName].toString().trim()
+    var folderId    = jobs[j][columnOrder.folderId].toString().trim()
+    var tray        = jobs[j][columnOrder.tray].toString().trim()
+    var isDuplex    = jobs[j][columnOrder.isDuplex].toString().trim() == "Yes" ? "LONG_EDGE" : "NO_DUPLEX"
+    var frequency   = jobs[j][columnOrder.frequency].toString().trim()
+    var printerId   = jobs[j][columnOrder.printerId].toString().trim()
+    var destination = jobs[j][columnOrder.destination].toString().trim()
 
     if ( ! printerId.length || ! folderId.length)
       continue
@@ -56,11 +57,7 @@ function autoPrint(trigger_override) {
 
     Logger.log('isTriggered: '+jobName+' frequency:'+frequency+' day:'+today.getDay()+' hours:'+today.getHours()+' mins:'+today.getMinutes()+' j:'+j+' triggered:'+triggered+' trigger_override:'+JSON.stringify(trigger_override)+' job:'+JSON.stringify(jobs[j]))
 
-    if ( ! triggered)
-      continue
-
     try{ //to handle each job
-
       var folder  = DriveApp.getFolderById(folderId)
       var printed = folder.getFoldersByName("Printed")
       var faxed   = folder.getFoldersByName("Faxed")
@@ -92,7 +89,7 @@ function autoPrint(trigger_override) {
       for(i in files){
 
         var fileId = files[i].getId()
-        
+
         Logger.log(['DEBUG autoPrint', files[i].getName(), 'Original Script', mainCache.get(fileId), 'This Script', scriptId.toJSON()])
 
         if ( ! override && mainCache.get(fileId)) {
@@ -102,24 +99,25 @@ function autoPrint(trigger_override) {
 
         if ( ! override) mainCache.put(fileId, scriptId.toJSON(), cacheMins*60)
 
-        if (printerId.slice(0,4) == 'sfax')
-          faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
-        else
-          printDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
-        
-        //Logger.log('DEBUG Folder Move'+files[i].getName()+': '+folder.getName()+' -> '+completed.getName())
-        
-        try { 
+        Logger.log([fileId, printerId, files[i].getName(), tray, isDuplex]);
+
+        // If the file was sucessfully moved, then we are ready to print it.
+        if (printerId.slice(0,4) == 'sfax') {
+          faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex);
+        } else if(destination == 'printnode') {
+          printDocViaPrintnode(fileId, printerId, files[i].getName(), tray, isDuplex);
+        } else {
+          printDoc(fileId, printerId, files[i].getName(), tray, isDuplex);
+        }
+
+        try {
           files[i].moveTo(completed)
         } catch (e) {
           var message = 'Printing Error ERROR Folder Move '+files[i].getName()+': '+folder.getName()+' -> '+completed.getName()+' '+e.message+' '+e.stack
           var permissions = ' Active User '+Session.getActiveUser().getEmail()+' Effective User '+Session.getEffectiveUser().getEmail()+' File Owner '+files[i].getOwner().getEmail()
-          Logger.log(message+permissions)
-          MailApp.sendEmail("adam@sirum.org", "Printing Error", message+permissions) //TODO: change this to info@sirum.org
+          Logger.log([message, permissions]);
+          MailApp.sendEmail("tech@sirum.org", "Printing Error", message+permissions);
         }
-       
-        //completed.addFile(files[i]);//move to the completed folder
-        //folder.removeFile(files[i]); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
       }
 
     } catch(e){
@@ -135,7 +133,9 @@ function autoPrint(trigger_override) {
   } catch (e) {}
 }
 
-//Frquency is from dropdown of [1 min,30 min,1 hr,12am,1am,2am,3am,4am,5am,6am,7am,8am,9am,10am,11am,12pm,1pm,2pm,3pm,4pm,5pm,6pm,7pm,8pm,10pm,11pm,Monday,Tuesday,Wednesday,Thursday,Friday]
+// Frquency is from dropdown of [1 min,30 min,1 hr,12am,1am,2am,3am,4am,5am,6am,
+// 7am,8am,9am,10am,11am,12pm,1pm,2pm,3pm,4pm,5pm,6pm,7pm,8pm,10pm,11pm,Monday,
+// Tuesday,Wednesday,Thursday,Friday]
 function isTriggered(frequency){
 
   if(frequency.length == 0) return false //they need to specify something
@@ -170,5 +170,6 @@ function logError(job, msg, error_sheet){
   var time_stamp = Utilities.formatDate(new Date(), "GMT-05:00", "MM/dd/yyyy HH:mm:ss")
   if (error_sheet && error_sheet.appendRow) error_sheet.appendRow([job,msg, time_stamp])
   if (msg.stack) msg = msg.name+' '+msg.message+' '+msg.stack //this is an error and JSON.stringify won't work well
-  MailApp.sendEmail("adam@sirum.org", "Printing Error", "There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg)) //TODO: change this to info@sirum.org
+  Logger.log("There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg));
+  //MailApp.sendEmail("tech@sirum.org", "Printing Error", "There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg)) //TODO: change this to info@sirum.org
 }
