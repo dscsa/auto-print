@@ -92,7 +92,7 @@ function autoPrint(trigger_override) {
       for(i in files){
 
         var fileId = files[i].getId()
-        
+
         Logger.log(['DEBUG autoPrint', files[i].getName(), 'Original Script', mainCache.get(fileId), 'This Script', scriptId.toJSON()])
 
         if ( ! override && mainCache.get(fileId)) {
@@ -106,18 +106,18 @@ function autoPrint(trigger_override) {
           faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
         else
           printDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
-        
+
         //Logger.log('DEBUG Folder Move'+files[i].getName()+': '+folder.getName()+' -> '+completed.getName())
-        
-        try { 
+
+        try {
           files[i].moveTo(completed)
         } catch (e) {
           var message = 'Printing Error ERROR Folder Move '+files[i].getName()+': '+folder.getName()+' -> '+completed.getName()+' '+e.message+' '+e.stack
           var permissions = ' Active User '+Session.getActiveUser().getEmail()+' Effective User '+Session.getEffectiveUser().getEmail()+' File Owner '+files[i].getOwner().getEmail()
           Logger.log(message+permissions)
-          MailApp.sendEmail("adam@sirum.org", "Printing Error", message+permissions) //TODO: change this to info@sirum.org
+          MailApp.sendEmail("tech@sirum.org", "Printing Error", message+permissions) //TODO: change this to info@sirum.org
         }
-       
+
         //completed.addFile(files[i]);//move to the completed folder
         //folder.removeFile(files[i]); //when after printDoc we seemed to be getting duplicate prints. maybe putting ahead will give it "more time to process"?
       }
@@ -170,5 +170,5 @@ function logError(job, msg, error_sheet){
   var time_stamp = Utilities.formatDate(new Date(), "GMT-05:00", "MM/dd/yyyy HH:mm:ss")
   if (error_sheet && error_sheet.appendRow) error_sheet.appendRow([job,msg, time_stamp])
   if (msg.stack) msg = msg.name+' '+msg.message+' '+msg.stack //this is an error and JSON.stringify won't work well
-  MailApp.sendEmail("adam@sirum.org", "Printing Error", "There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg)) //TODO: change this to info@sirum.org
+  MailApp.sendEmail("tech@sirum.org", "Printing Error", "There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg)) //TODO: change this to info@sirum.org
 }
