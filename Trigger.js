@@ -192,6 +192,5 @@ function logError(job, msg, error_sheet){
   var time_stamp = Utilities.formatDate(new Date(), "GMT-05:00", "MM/dd/yyyy HH:mm:ss")
   if (error_sheet && error_sheet.appendRow) error_sheet.appendRow([job,msg, time_stamp])
   if (msg.stack) msg = msg.name+' '+msg.message+' '+msg.stack //this is an error and JSON.stringify won't work well
-  Logger.log("There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg));
-  //MailApp.sendEmail("tech@sirum.org", "Printing Error", "There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg)) //TODO: change this to info@sirum.org
+  MailApp.sendEmail("tech@sirum.org", "Printing Error", "There was an error on printing job: " + JSON.stringify(job) + "\n\nError Message: " + JSON.stringify(msg)) //TODO: change this to info@sirum.org
 }
