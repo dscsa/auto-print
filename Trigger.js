@@ -102,16 +102,35 @@ function autoPrint(trigger_override) {
 
         if ( ! override) mainCache.put(fileId, scriptId.toJSON(), cacheMins*60)
 
-        if (printerId.slice(0,4) == 'sfax')
-          faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
-        else
-          printDoc(fileId, printerId, files[i].getName(), tray, isDuplex)
+        var fileDesc = files[i].getDescription() || '';
+        if (!files[i].isStarred()) {
 
-        //Logger.log('DEBUG Folder Move'+files[i].getName()+': '+folder.getName()+' -> '+completed.getName())
+            fileDesc += "{printed:" + Date.now() + "}";
+            files[i].setDescription(fileDesc);
+            files[i].setStarred(true);
+
+            // If the file was sucessfully moved, then we are ready to print it.
+            if (printerId.slice(0,4) == 'sfax') {
+              faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex);
+            } else {
+              printDoc(fileId, printerId, files[i].getName(), tray, isDuplex);
+            }
+
+            Logger.log("Printing - " + fileId +  ", DESC - " + fileDesc);
+
+        } else {
+            Logger.log(
+                [
+                    "Duplicate print attempted",
+                    fileId
+                ]
+            );
+        }
 
         try {
-          files[i].moveTo(completed)
-        } catch (e) {
+          files[i].moveTo(completed);
+          files[i].setStarred(false);
+       } catch (e) {
           var message = 'Printing Error ERROR Folder Move '+files[i].getName()+': '+folder.getName()+' -> '+completed.getName()+' '+e.message+' '+e.stack
           var permissions = ' Active User '+Session.getActiveUser().getEmail()+' Effective User '+Session.getEffectiveUser().getEmail()+' File Owner '+files[i].getOwner().getEmail()
           Logger.log(message+permissions)
