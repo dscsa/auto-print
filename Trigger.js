@@ -120,7 +120,7 @@ function autoPrint(trigger_override) {
               printDoc(fileId, printerId, files[i].getName(), tray, isDuplex);
             }
 
-            Logger.log("Printing " + fileId +  " DESC " + fileDesc);
+            Logger.log("Printing - " + fileId +  ", DESC - " + fileDesc);
 
         } else {
             Logger.log(
