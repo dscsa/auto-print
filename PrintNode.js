@@ -1,7 +1,7 @@
 function testPrintNodeDuplex() {
     printDocViaPrintnode(
         '1nt3xCn9Oe3fMA3c4_OWlm2uCabVBwAahYsnDVQn8Wl0',
-        69858230,
+        69841410,
         'Test Print',
         '',
         'LONG_EDGE')
@@ -10,18 +10,9 @@ function testPrintNodeDuplex() {
 function testPrintNode() {
     printDocViaPrintnode(
         '1nt3xCn9Oe3fMA3c4_OWlm2uCabVBwAahYsnDVQn8Wl0',
-        69858230,
+        69841410,
         'Test Print',
         '',
-        '')
-}
-
-function testPrintNodeTray() {
-    printDocViaPrintnode(
-        '1nt3xCn9Oe3fMA3c4_OWlm2uCabVBwAahYsnDVQn8Wl0',
-        69858230,
-        'Test Print',
-        'Tray1',
         '')
 }
 

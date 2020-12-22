@@ -46,7 +46,6 @@ function autoPrint(trigger_override) {
     var isDuplex    = jobs[j][columnOrder.isDuplex].toString().trim() == "Yes" ? "LONG_EDGE" : "NO_DUPLEX"
     var frequency   = jobs[j][columnOrder.frequency].toString().trim()
     var printerId   = jobs[j][columnOrder.printerId].toString().trim()
-    var destination = jobs[j][columnOrder.destination].toString().trim()
 
     if ( ! printerId.length || ! folderId.length)
       continue
@@ -62,12 +61,13 @@ function autoPrint(trigger_override) {
       var printed = folder.getFoldersByName("Printed")
       var faxed   = folder.getFoldersByName("Faxed")
 
-      if (printed.hasNext())
+      if (printed.hasNext()) {
         var completed = printed.next()
-      else if (faxed.hasNext())
+      } else if (faxed.hasNext()) {
         var completed = faxed.next()
-      else
-        return logError(jobName, 'Does not have a printed or faxed folder', errors)
+      }else {
+        var completed = false;
+      }
 
       var iterator = folder.getFiles()
       var files    = []
@@ -114,13 +114,13 @@ function autoPrint(trigger_override) {
             // If the file was sucessfully moved, then we are ready to print it.
             if (printerId.slice(0,4) == 'sfax') {
               faxDoc(fileId, printerId, files[i].getName(), tray, isDuplex);
-            } else if(destination == 'printnode') {
-              printDocViaPrintnode(fileId, printerId, files[i].getName(), tray, isDuplex);
+            } else if(printerId.slice(0,9) == 'printnode') {
+              printDocViaPrintnode(fileId, printerId.slice(10), files[i].getName(), tray, isDuplex);
             } else {
               printDoc(fileId, printerId, files[i].getName(), tray, isDuplex);
             }
 
-            Logger.log("Printing - " + fileId +  ", DESC - " + fileDesc);
+            Logger.log("Printing " + fileId +  " DESC " + fileDesc);
 
         } else {
             Logger.log(
@@ -132,7 +132,13 @@ function autoPrint(trigger_override) {
         }
 
         try {
-          files[i].moveTo(completed);
+          if (completed) {
+            // Move the file to the completed folder
+            files[i].moveTo(completed);
+          } else {
+            files[i].setTrashed(true);
+          }
+          
           files[i].setStarred(false);
         } catch (e) {
           var message = 'Printing Error ERROR Folder Move '+files[i].getName()+': '+folder.getName()+' -> '+completed.getName()+' '+e.message+' '+e.stack
