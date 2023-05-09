@@ -6,28 +6,31 @@ Google Apps Script microservice for printing documents via PrintNode and sending
 
 ## Development Environment Setup
 
-Code is pulled using clasp which requires nodeJS to be installed
+> **WARNING:** always pull from production before making any changes since push/pull is destructive and will overwrite local/remote changes without warning!
+
+Code is pulled using clasp which requires nodeJS to be installed:
+
 
 1. Install clasp globally
-    ```zsh
-    npm i -g @google/clasp
-    ```
+ ```zsh
+ npm i -g @google/clasp
+ ```
 
 2. Clone this repo
-    ```zsh
-    git clone git@github.com:dscsa/auto-print.git
-    cd auto-print
-    ```
+ ```zsh
+ git clone git@github.com:dscsa/auto-print.git
+ cd auto-print
+ ```
 
 3. Login to clasp. This should open a browser tab prompting auth via Google
-    ```zsh
-    clasp login
-    ```
+ ```zsh
+ clasp login
+ ```
 
 4. Pull down the latest changes to make sure everything is in sync. If this is the first time you have pulled changes this will also fetch the `Keys.js` file
-    ```zsh
-    clasp pull
-    ```
+ ```zsh
+ clasp pull
+ ```
 
 For more information on using clasp, see https://developers.google.com/apps-script/guides/clasp
 
