@@ -22,7 +22,7 @@ Code is pulled using clasp which requires nodeJS to be installed:
  cd auto-print
  ```
 
-3. Login to clasp. This should open a browser tab prompting auth via Google
+3. Login to clasp as `print@sirum.org` (login details in are in LastPass). This should open a browser tab prompting auth via Google
  ```zsh
  clasp login
  ```
@@ -38,7 +38,7 @@ For more information on using clasp, see https://developers.google.com/apps-scri
 
 ## Production Deployment Details
 
-This project is deployed under the `print@sirum.org` account (details in LastPass). The Apps Script console can be accessed https://script.google.com
+This project is deployed under the `print@sirum.org` account. The Apps Script console can be accessed https://script.google.com
 
 - The Google Sheet is: `AutoPrintFax_v2`
 - Code/deployment setup: `Extenstions > Apps Script`
