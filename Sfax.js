@@ -52,6 +52,8 @@ function toFaxFormat(fax) {
 //https://stackoverflow.com/questions/24340340/urlfetchapp-upload-file-multipart-form-data-in-google-apps-script
 function sendSFax(fromFax, toFax, blob){
 
+  Logger.log(['sendSFax', 'START', fromFax, toFax])
+
   var token = getToken()
   //var blob  = DriveApp.getFileById("1lyRpFl0GiEvj5Ixu-BwTvQB-sw6lt3UH").getBlob()
 
@@ -60,7 +62,7 @@ function sendSFax(fromFax, toFax, blob){
   if (toFax != fromFax) //Have external faxes come from Good Pill and gointo our sent folder
     url += "&OptionalParams=" + encodeURIComponent('SenderFaxNumber=1'+fromFax)
 
-  Logger.log(['sendSFax', url])
+  Logger.log(['sendSFax', 'URL', url])
 
   var opts  = {
     method:'POST',
@@ -69,13 +71,12 @@ function sendSFax(fromFax, toFax, blob){
   }
 
   try{
-
-    //var req = UrlFetchApp.getRequest(url,opts);   // (OPTIONAL) generate the request so you
-    //Logger.log("Request payload: " + JSON.stringify(req)); // can examine it (useful for debugging)
+    // OPTIONAL: generate the request to examine it (useful for debugging)
+    var req = UrlFetchApp.getRequest(url,opts);
+    Logger.log(['sendSFax', 'REQUEST', + JSON.stringify(req)]);
 
     var res = UrlFetchApp.fetch(url, opts)
-
-    //logError('sendSFax res: ' + JSON.stringify(res) + ' || ' + res.getResponseCode() + ' || ' + JSON.stringify(res.getHeaders()) + ' || ' + res.getContentText())
+    Logger.log(['sendSFax', 'RESPONSE', JSON.stringify(res) + ' || ' + res.getResponseCode() + ' || ' + JSON.stringify(res.getHeaders()) + ' || ' + res.getContentText()]);
 
     return JSON.parse(res.getContentText()) //{"SendFaxQueueId":"539658135EB742968663C6820BE33DB0","isSuccess":true,"message":"Fax is received and being processed"}
 
