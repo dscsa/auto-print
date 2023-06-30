@@ -67,18 +67,6 @@ function newJobTrigger(e) {
 
       if(typeof e.value != "string") return ///Weird but when value deleted, e.value == {"oldValue":...} rather than falsey. So we need a typeof check
 
-      try{
-        var parent  = DriveApp.getFolderById(e.value) //make sure we can access the folder to print
-        var printed = parent.getFoldersByName("Printed")
-        var faxed   = parent.getFoldersByName("Faxed")
-        if( ! printed.hasNext() && ! faxed.hasNext()){
-          throw new Error("There is no 'Printed' or 'Faxed' folder in the job folder with name: " + parent.getName() + ". There needs to be a 'Printed' folder to move finished files")
-        }
-
-      } catch(e) { //will throw error if folder doesnt work or printer@ doesn't have access, so catch and highlight cell
-        range.setBackground("pink")
-        range.getCell(1,1).setComment("Please check this folder exists and is shared with print@sirum.org "+e.getMessage())
-      }
 
     }
   }
